@@ -16,7 +16,7 @@ namespace Simple301.Core
 
             //Check the table
             var matchedRedirect = RedirectRepository.FindRedirect(path);
-            if (matchedRedirect == null) return false;
+            if (matchedRedirect == null || string.IsNullOrWhiteSpace(matchedRedirect.NewUrl)) return false;
 
             //Found one, set the 301 redirect on the request and return
             var redirectUri = GetRoute(matchedRedirect.NewUrl);
@@ -35,8 +35,6 @@ namespace Simple301.Core
 
         private static Uri GetRoute(string url)
         {
-            if (string.IsNullOrWhiteSpace(url)) return null;
-
             url = url.Trim();
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
