@@ -1,5 +1,5 @@
 ﻿using Umbraco.Web.Routing;
-using System.Linq;
+using System;
 
 namespace Simple301.Core
 {
@@ -19,8 +19,37 @@ namespace Simple301.Core
             if (matchedRedirect == null) return false;
 
             //Found one, set the 301 redirect on the request and return
-            request.SetRedirectPermanent(matchedRedirect.NewUrl);
+            var redirectUri = GetRoute(matchedRedirect.NewUrl);
+            if (redirectUri.IsAbsoluteUri)
+            {
+                //if is absolute then redirect using the host
+                request.SetRedirectPermanent(redirectUri.AbsoluteUri);
+            } else
+            {
+                //redirect is relative, so continue as before
+                request.SetRedirectPermanent(matchedRedirect.NewUrl);
+            }
+
             return true;
+        }
+
+        private static Uri GetRoute(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return null;
+
+            url = url.Trim();
+            if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            {
+                return new Uri(url, UriKind.Absolute);
+            }
+
+            url = url.Substring(url.IndexOf('/'));
+            if (Uri.IsWellFormedUriString(url, UriKind.Relative))
+            {
+                return new Uri(url, UriKind.Relative);
+            }
+
+            return null;
         }
     }
 }
